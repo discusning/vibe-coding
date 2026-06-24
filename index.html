@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio — Game Developer</title>
+  <style>
+    /* ──────────── Reset & Base ──────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0e0f13;
+      --surface:  #16181f;
+      --card:     #1e2029;
+      --border:   #2a2d38;
+      --accent:   #7c6df0;
+      --accent2:  #4ecdc4;
+      --text:     #e4e6f0;
+      --muted:    #7a7f99;
+      --radius:   12px;
+      --mono:     'Courier New', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent2); }
+
+    /* ──────────── Scrollbar ──────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+    /* ──────────── Nav ──────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(14,15,19,.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent2);
+      letter-spacing: .05em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: .04em;
+      transition: color .2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ──────────── Hero ──────────── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6rem 2rem 4rem;
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent2);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      opacity: 0;
+      animation: fadeUp .6s .1s forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      margin-bottom: 1.4rem;
+      opacity: 0;
+      animation: fadeUp .6s .2s forwards;
+    }
+
+    .hero-title span { color: var(--accent); }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 2.4rem;
+      opacity: 0;
+      animation: fadeUp .6s .35s forwards;
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .6rem;
+      opacity: 0;
+      animation: fadeUp .6s .5s forwards;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .25rem .85rem;
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      transition: border-color .2s, color .2s;
+    }
+
+    .tag:hover { border-color: var(--accent); color: var(--accent); }
+
+    .hero-cta {
+      margin-top: 2.8rem;
+      display: flex;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp .6s .6s forwards;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .65rem 1.5rem;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .03em;
+      transition: transform .15s, box-shadow .15s;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(124,109,240,.35);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      color: var(--accent2);
+      border-color: var(--accent2);
+      transform: translateY(-2px);
+    }
+
+    /* terminal blink */
+    .cursor {
+      display: inline-block;
+      width: 3px;
+      height: 1em;
+      background: var(--accent);
+      margin-left: 4px;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+
+    /* ──────────── Section commons ──────────── */
+    section { padding: 6rem 2rem; }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      margin-bottom: .6rem;
+    }
+
+    .section-title {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      margin-bottom: .6rem;
+    }
+
+    .section-divider {
+      width: 40px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      margin-bottom: 2.4rem;
+    }
+
+    /* ──────────── About ──────────── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .about-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .about-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+
+    .about-card h3 {
+      font-size: .8rem;
+      font-family: var(--mono);
+      color: var(--accent2);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: .8rem;
+    }
+
+    .about-card p { color: var(--muted); font-size: .95rem; }
+    .about-card p strong { color: var(--text); }
+
+    .about-full {
+      grid-column: 1 / -1;
+    }
+
+    /* ──────────── Skills ──────────── */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1.2rem;
+    }
+
+    .skill-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .skill-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-3px);
+    }
+
+    .skill-card-icon {
+      font-size: 1.6rem;
+      margin-bottom: .8rem;
+    }
+
+    .skill-card h3 {
+      font-size: .85rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      letter-spacing: .06em;
+      margin-bottom: .6rem;
+    }
+
+    .skill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+    }
+
+    .skill-badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .2rem .6rem;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text);
+    }
+
+    /* ──────────── Projects ──────────── */
+    .projects-list { display: flex; flex-direction: column; gap: 1.6rem; }
+
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.4rem;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .project-card:hover {
+      border-color: var(--accent);
+      transform: translateX(4px);
+    }
+
+    .project-num {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--border);
+      line-height: 1;
+      padding-top: .15rem;
+      min-width: 2.4rem;
+    }
+
+    .project-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: .4rem;
+    }
+
+    .project-desc { color: var(--muted); font-size: .9rem; margin-bottom: .9rem; }
+
+    .project-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .project-tag {
+      background: rgba(124,109,240,.12);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: .15rem .55rem;
+      font-size: 11px;
+      font-family: var(--mono);
+      border: 1px solid rgba(124,109,240,.25);
+    }
+
+    /* ──────────── Philosophy / Values ──────────── */
+    .values-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    .value-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      transition: border-color .2s;
+    }
+
+    .value-item:hover { border-color: var(--accent2); }
+
+    .value-item h3 {
+      font-size: .8rem;
+      font-family: var(--mono);
+      color: var(--accent2);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: .6rem;
+    }
+
+    .value-item p { color: var(--muted); font-size: .9rem; }
+
+    /* ──────────── Timeline / Story ──────────── */
+    .timeline { position: relative; padding-left: 1.6rem; }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, var(--accent), var(--accent2), transparent);
+      border-radius: 2px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2rem;
+      padding-left: 1.4rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -1.7rem;
+      top: .45rem;
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      box-shadow: 0 0 0 2px var(--accent);
+    }
+
+    .timeline-year {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent2);
+      letter-spacing: .08em;
+      margin-bottom: .3rem;
+    }
+
+    .timeline-title {
+      font-size: .95rem;
+      font-weight: 600;
+      margin-bottom: .3rem;
+    }
+
+    .timeline-desc { color: var(--muted); font-size: .88rem; }
+
+    /* ──────────── Quote ──────────── */
+    .quote-block {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1.6rem 2rem;
+      margin: 2.4rem 0;
+      font-size: 1rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .quote-block strong { color: var(--text); font-style: normal; }
+
+    /* ──────────── Interests ──────────── */
+    .interests-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .8rem;
+      margin-top: 1rem;
+    }
+
+    .interest-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .7rem 1.2rem;
+      font-size: .88rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      transition: border-color .2s, transform .2s;
+    }
+
+    .interest-chip:hover {
+      border-color: var(--accent2);
+      transform: translateY(-2px);
+    }
+
+    .interest-chip .ic-icon { font-size: 1.1rem; }
+    .interest-chip .ic-label { color: var(--text); }
+    .interest-chip .ic-sub { color: var(--muted); font-size: .78rem; }
+
+    /* ──────────── Footer ──────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2.4rem 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .82rem;
+      font-family: var(--mono);
+    }
+
+    footer .footer-inner { max-width: 860px; margin: 0 auto; }
+
+    /* ──────────── Animations ──────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* ──────────── Reveal on scroll ──────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ──────────── Responsive ──────────── */
+    @media (max-width: 640px) {
+      .about-grid { grid-template-columns: 1fr; }
+      .values-grid { grid-template-columns: 1fr; }
+      .project-card { grid-template-columns: 1fr; }
+      .project-num { font-size: 1rem; }
+      .nav-links { gap: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─────────────── NAV ─────────────── -->
+<nav>
+  <span class="nav-brand">// game.dev</span>
+  <ul class="nav-links">
+    <li><a href="#about">소개</a></li>
+    <li><a href="#skills">기술</a></li>
+    <li><a href="#projects">프로젝트</a></li>
+    <li><a href="#values">가치관</a></li>
+    <li><a href="#interests">관심사</a></li>
+  </ul>
+</nav>
+
+<!-- ─────────────── HERO ─────────────── -->
+<section id="hero">
+  <div class="hero-label">// 게임 개발자 지망생</div>
+  <h1 class="hero-title">
+    게임으로<br>
+    <span>세상과 소통</span>하는<br>
+    개발자<span class="cursor"></span>
+  </h1>
+  <p class="hero-sub">
+    게임 콘텐츠학과 2학년 · C# / Unity 중심 개발 · 자기객관화가 강점인 꾸준한 성장형 개발자
+  </p>
+  <div class="hero-tags">
+    <span class="tag">C#</span>
+    <span class="tag">Unity</span>
+    <span class="tag">C++</span>
+    <span class="tag">Python</span>
+    <span class="tag">Game Dev</span>
+    <span class="tag">Git</span>
+    <span class="tag">Figma</span>
+    <span class="tag">Notion</span>
+  </div>
+  <div class="hero-cta">
+    <a href="#projects" class="btn btn-primary">프로젝트 보기 →</a>
+    <a href="#about" class="btn btn-ghost">더 알아보기</a>
+  </div>
+</section>
+
+<!-- ─────────────── ABOUT ─────────────── -->
+<section id="about">
+  <div class="container">
+    <p class="section-label reveal">// 01. about</p>
+    <h2 class="section-title reveal">저는 이런 사람입니다</h2>
+    <div class="section-divider reveal"></div>
+
+    <div class="about-grid">
+      <div class="about-card reveal">
+        <h3>현황</h3>
+        <p>
+          <strong>게임 콘텐츠학과 2학년</strong> 재학 중.<br>
+          20살부터 게임 개발에 빠져들어 지금까지 꾸준히 배우고 있습니다.
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>목표</h3>
+        <p>
+          <strong>게임 회사 취직</strong> 후 팀 프로젝트를 성공적으로 완수하는 것이 5년 내 목표.<br>
+          인디 게임 공모전에도 도전해보고 싶습니다.
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>강점</h3>
+        <p>
+          <strong>자기객관화</strong>가 확실합니다. 내 실력과 위치를 냉정하게 파악하고,
+          필요한 것을 빠르게 찾아 채워나갑니다.
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>협업 스타일</h3>
+        <p>
+          상대의 이야기를 먼저 듣고, <strong>소통이 원활하게</strong> 이루어지는 팀을 선호합니다.
+          각자 역할을 명확히 이해하고 시간을 잘 분배하는 것이 중요하다고 생각합니다.
+        </p>
+      </div>
+      <div class="about-card about-full reveal">
+        <h3>솔직한 자기소개</h3>
+        <p>
+          스스로를 <strong>'꼰대'</strong>라고 표현할 만큼 솔직하고 원칙이 있습니다.
+          낯가림이 있어 처음엔 거리감이 느껴질 수 있지만, 협업에서 소통 문제를 만들지 않겠다는
+          건 확실히 지킵니다. 감정보다 이득을 기준으로 결정하며, 꾸준함이 결국 실력이 된다고 믿습니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="quote-block reveal">
+      "어떤 일이든 꾸준함은 절대 무시할 수 없는 요소입니다. 꾸준함을 가진다면
+      <strong>시간의 쓰임 자체가 달라집니다.</strong>"
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── SKILLS ─────────────── -->
+<section id="skills" style="background: var(--surface);">
+  <div class="container">
+    <p class="section-label reveal">// 02. skills</p>
+    <h2 class="section-title reveal">기술 스택</h2>
+    <div class="section-divider reveal"></div>
+
+    <div class="skills-grid">
+      <div class="skill-card reveal">
+        <div class="skill-card-icon">🎮</div>
+        <h3>Game Engine</h3>
+        <div class="skill-list">
+          <span class="skill-badge">Unity</span>
+          <span class="skill-badge">C#</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-card-icon">💻</div>
+        <h3>Languages</h3>
+        <div class="skill-list">
+          <span class="skill-badge">C#</span>
+          <span class="skill-badge">C++</span>
+          <span class="skill-badge">Python</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-card-icon">🛠</div>
+        <h3>Tools</h3>
+        <div class="skill-list">
+          <span class="skill-badge">Git</span>
+          <span class="skill-badge">Figma</span>
+          <span class="skill-badge">Notion</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-card-icon">🧠</div>
+        <h3>Soft Skills</h3>
+        <div class="skill-list">
+          <span class="skill-badge">자기객관화</span>
+          <span class="skill-badge">분석력</span>
+          <span class="skill-badge">계획 관리</span>
+          <span class="skill-badge">경청</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-card-icon">📚</div>
+        <h3>Learning</h3>
+        <div class="skill-list">
+          <span class="skill-badge">게임 개발 언어</span>
+          <span class="skill-badge">알고리즘</span>
+          <span class="skill-badge">게임 수학</span>
+        </div>
+      </div>
+      <div class="skill-card reveal">
+        <div class="skill-card-icon">🎯</div>
+        <h3>Focus Area</h3>
+        <div class="skill-list">
+          <span class="skill-badge">게임플레이 개발</span>
+          <span class="skill-badge">캐릭터 제어</span>
+          <span class="skill-badge">AI 자문 활용</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── PROJECTS ─────────────── -->
+<section id="projects">
+  <div class="container">
+    <p class="section-label reveal">// 03. projects</p>
+    <h2 class="section-title reveal">프로젝트</h2>
+    <div class="section-divider reveal"></div>
+
+    <div class="projects-list">
+
+      <div class="project-card reveal">
+        <div class="project-num">01</div>
+        <div>
+          <h3 class="project-title">대학 팀 게임 프로젝트</h3>
+          <p class="project-desc">
+            대학 수업 중 진행한 팀 프로젝트. 플레이어 조작, 몬스터 공격 패턴,
+            이동 방식을 전담 구현했습니다. 처음 접하는 갈고리(훅) 기술도 AI와
+            주변의 자문을 통해 스스로 해결하며 완성했습니다.<br><br>
+            <em style="font-size:.85rem; color:var(--muted)">
+              "소통의 부재 속에서도 팀이 게임을 완성했다 — 그게 이 프로젝트의 가장 큰 성취입니다."
+            </em>
+          </p>
+          <div class="project-tags">
+            <span class="project-tag">Unity</span>
+            <span class="project-tag">C#</span>
+            <span class="project-tag">팀 프로젝트</span>
+            <span class="project-tag">플레이어 제어</span>
+            <span class="project-tag">몬스터 AI</span>
+            <span class="project-tag">갈고리 기술</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">02</div>
+        <div>
+          <h3 class="project-title">2인 게임 개발 프로젝트 (진행 중)</h3>
+          <p class="project-desc">
+            현재 2인으로 진행 중인 게임 개발 사이드 프로젝트.
+            포트폴리오를 채우기 위해 본격적으로 집중하고 있습니다.
+          </p>
+          <div class="project-tags">
+            <span class="project-tag">Unity</span>
+            <span class="project-tag">C#</span>
+            <span class="project-tag">In Progress</span>
+            <span class="project-tag">2인 개발</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="project-card reveal">
+        <div class="project-num">03</div>
+        <div>
+          <h3 class="project-title">팀 프로젝트 (진행 중)</h3>
+          <p class="project-desc">
+            현재 병행하고 있는 팀 단위 프로젝트.
+            취업을 위한 포트폴리오 구성에 집중하며 다양한 경험을 쌓는 중입니다.
+          </p>
+          <div class="project-tags">
+            <span class="project-tag">In Progress</span>
+            <span class="project-tag">팀 협업</span>
+            <span class="project-tag">포트폴리오</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── TIMELINE ─────────────── -->
+<section style="background: var(--surface);">
+  <div class="container">
+    <p class="section-label reveal">// 04. journey</p>
+    <h2 class="section-title reveal">성장 이야기</h2>
+    <div class="section-divider reveal"></div>
+
+    <div class="timeline reveal">
+      <div class="timeline-item">
+        <div class="timeline-year">20살</div>
+        <div class="timeline-title">게임 개발의 세계에 입문</div>
+        <div class="timeline-desc">게임 플레이에서 느낀 감동을 직접 만들어보고 싶다는 마음으로 게임 개발에 관심을 갖기 시작.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">대학 입학</div>
+        <div class="timeline-title">게임 콘텐츠학과 진학</div>
+        <div class="timeline-desc">C#, Unity, Figma, Git 등 개발 기초를 체계적으로 학습 시작.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">첫 팀 프로젝트</div>
+        <div class="timeline-title">소통의 중요성을 배우다</div>
+        <div class="timeline-desc">팀 프로젝트를 통해 기술보다 커뮤니케이션이 얼마나 중요한지 몸소 경험. 갈고리 기술이라는 처음 접하는 과제를 스스로 해결하며 문제해결 능력 성장.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">현재 (2학년)</div>
+        <div class="timeline-title">포트폴리오 구축 집중</div>
+        <div class="timeline-desc">2인 게임 개발 프로젝트와 팀 프로젝트 병행. 인디 게임 공모전 도전과 취업을 목표로 꾸준히 성장 중.</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-year">5년 후 목표</div>
+        <div class="timeline-title">게임 회사에서 프로젝트 성공</div>
+        <div class="timeline-desc">대규모 팀 프로젝트에 참여하고, 게임 회사에서 실제 프로젝트를 성공시키는 것이 목표.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── VALUES ─────────────── -->
+<section id="values">
+  <div class="container">
+    <p class="section-label reveal">// 05. values</p>
+    <h2 class="section-title reveal">가치관 & 철학</h2>
+    <div class="section-divider reveal"></div>
+
+    <div class="values-grid">
+      <div class="value-item reveal">
+        <h3>성실함</h3>
+        <p>일할 때 가장 중요하게 생각하는 가치. 어떤 일이든 꾸준하게 하는 것이 곧 실력이 된다고 믿습니다.</p>
+      </div>
+      <div class="value-item reveal">
+        <h3>자기객관화</h3>
+        <p>내 강점과 약점을 냉정하게 파악합니다. 감정보다 이성적인 판단으로 최선의 선택을 추구합니다.</p>
+      </div>
+      <div class="value-item reveal">
+        <h3>소통</h3>
+        <p>협업에서 원활한 소통이 가장 중요합니다. 상대의 이야기를 먼저 들어보는 것이 제 소통 방식입니다.</p>
+      </div>
+      <div class="value-item reveal">
+        <h3>일과 삶의 균형</h3>
+        <p>경계가 지켜져야 각각에서 최선을 다할 수 있습니다. 일할 때 일하고, 쉴 때 제대로 쉬는 것이 중요합니다.</p>
+      </div>
+      <div class="value-item reveal">
+        <h3>실패에 대한 태도</h3>
+        <p>인간인 이상 실패는 피할 수 없는 과정. 두려워하기보다 어쩔 수 없는 성장의 일부로 받아들입니다.</p>
+      </div>
+      <div class="value-item reveal">
+        <h3>계획과 유연성</h3>
+        <p>계획을 세우되 그 안에서 유연하게 행동합니다. 마감 전 파트별로 시간을 분배해 체계적으로 관리합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── INTERESTS ─────────────── -->
+<section id="interests" style="background: var(--surface);">
+  <div class="container">
+    <p class="section-label reveal">// 06. interests</p>
+    <h2 class="section-title reveal">관심사</h2>
+    <div class="section-divider reveal"></div>
+
+    <div class="interests-row">
+      <div class="interest-chip reveal">
+        <span class="ic-icon">🎵</span>
+        <div>
+          <div class="ic-label">음악 감상</div>
+          <div class="ic-sub">스트레스 해소 & 노래방</div>
+        </div>
+      </div>
+      <div class="interest-chip reveal">
+        <span class="ic-icon">🎮</span>
+        <div>
+          <div class="ic-label">게임 플레이</div>
+          <div class="ic-sub">만드는 사람의 눈으로 즐기기</div>
+        </div>
+      </div>
+      <div class="interest-chip reveal">
+        <span class="ic-icon">📚</span>
+        <div>
+          <div class="ic-label">일본 추리 소설</div>
+          <div class="ic-sub">히가시노 게이고 팬</div>
+        </div>
+      </div>
+      <div class="interest-chip reveal">
+        <span class="ic-icon">💹</span>
+        <div>
+          <div class="ic-label">반도체 & 주식</div>
+          <div class="ic-sub">산업 트렌드 관심</div>
+        </div>
+      </div>
+      <div class="interest-chip reveal">
+        <span class="ic-icon">✈️</span>
+        <div>
+          <div class="ic-label">일본 오사카</div>
+          <div class="ic-sub">층운형 구름의 기억</div>
+        </div>
+      </div>
+      <div class="interest-chip reveal">
+        <span class="ic-icon">🏆</span>
+        <div>
+          <div class="ic-label">인디 게임 공모전</div>
+          <div class="ic-sub">도전 목표</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────── FOOTER ─────────────── -->
+<footer>
+  <div class="footer-inner">
+    <p style="margin-bottom:.4rem">
+      게임 개발자 포트폴리오 &nbsp;|&nbsp; 게임 콘텐츠학과 2학년
+    </p>
+    <p style="color:var(--border)">
+      // 현재 포트폴리오를 채우는 중 — 꾸준히 성장하고 있습니다
+    </p>
+  </div>
+</footer>
+
+<!-- ─────────────── Scroll Reveal Script ─────────────── -->
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Smooth nav highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(sec => {
+      if (window.scrollY >= sec.offsetTop - 80) current = sec.id;
+    });
+    navLinks.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + current
+        ? 'var(--text)' : '';
+    });
+  });
+</script>
+</body>
+</html>
