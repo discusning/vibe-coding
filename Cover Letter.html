@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>최동환 — 게임 클라이언트 개발자</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ─── RESET ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    /* ─── DESIGN TOKENS ─── */
+    :root {
+      --bg:      #070c18;
+      --surface: #0c1422;
+      --card:    #101e35;
+      --border:  #1c3050;
+      --blue:    #3b82f6;
+      --green:   #22c55e;
+      --teal:    #06b6d4;
+      --blue-l:  #93c5fd;
+      --text:    #f0f4ff;
+      --muted:   #94a3b8;
+      --gold:    #f59e0b;
+      --pixel:   'Press Start 2P', monospace;
+      --body:    'Noto Sans KR', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--body);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(13, 13, 26, .97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      height: 58px;
+      padding: 0 2.5rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--green);
+      letter-spacing: .05em;
+    }
+
+    .nav-links { display: flex; gap: 2rem; }
+
+    .nav-links a {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ─── LAYOUT ─── */
+    section { padding: 5.5rem 2rem; }
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* ─── SECTION HEADER ─── */
+    .sec-label {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--green);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: .5rem;
+    }
+
+    .sec-title {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      color: var(--text);
+      margin-bottom: .5rem;
+    }
+
+    .sec-bar {
+      width: 36px; height: 3px;
+      background: var(--green);
+      margin-bottom: 2.5rem;
+    }
+
+    /* ─── SCROLL REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity .5s ease, transform .5s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ─── SECTION COLOR TINTS ─── */
+    #projects { background-color: #091628; }
+    #skills   { background-color: #071520; }
+    #about    { background-color: #091e14; }
+    #values   { background-color: #07091e; }
+    #activities { background-color: #071822; }
+
+    /* 정적 도트 그리드 (히어로 제외) */
+    section:not(#hero) {
+      background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    /* ─── HERO ─── */
+    .hero-wrap {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 60% 55% at 75% 30%, rgba(59,130,246,.18) 0%, transparent 60%),
+        radial-gradient(ellipse 45% 50% at 15% 72%, rgba(34,197,94,.14) 0%, transparent 55%),
+        radial-gradient(rgba(6,182,212,.06) 1px, transparent 1px);
+      background-size: auto, auto, 20px 20px;
+    }
+
+    #hero {
+      min-height: 100vh;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 5rem 2rem 4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero-line {
+      width: 36px; height: 3px;
+      background: var(--green);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp .5s .05s forwards;
+    }
+
+    .hero-label {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--green);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      opacity: 0;
+      animation: fadeUp .5s .12s forwards;
+    }
+
+    .hero-name {
+      font-size: clamp(3rem, 7vw, 4.8rem);
+      font-weight: 900;
+      letter-spacing: -.04em;
+      line-height: 1.05;
+      color: var(--text);
+      margin-bottom: .75rem;
+      opacity: 0;
+      animation: fadeUp .5s .2s forwards;
+    }
+
+    .hero-name::after {
+      content: '|';
+      font-size: .65em;
+      font-weight: 300;
+      color: var(--green);
+      margin-left: 6px;
+      animation: blink 1s step-end infinite;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      opacity: 0;
+      animation: fadeUp .5s .27s forwards;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      background: rgba(61, 186, 120, .08);
+      border: 1.5px solid rgba(61, 186, 120, .3);
+      color: var(--green);
+      border-radius: 6px;
+      padding: .4rem 1.1rem;
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp .5s .34s forwards;
+    }
+
+    .hero-badge::before {
+      content: '●';
+      font-size: .45em;
+      animation: blink 1.5s ease infinite;
+    }
+
+    .hero-tags {
+      display: flex; flex-wrap: wrap; gap: .45rem;
+      margin-bottom: 2.2rem;
+      opacity: 0;
+      animation: fadeUp .5s .42s forwards;
+    }
+
+    .tag {
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      padding: .28rem .85rem;
+      font-size: .875rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: border-color .2s, color .2s;
+    }
+    .tag:hover { border-color: var(--blue); color: var(--blue-l); }
+
+    .hero-cta {
+      display: flex; gap: .8rem; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp .5s .5s forwards;
+    }
+
+    .btn {
+      display: inline-flex; align-items: center;
+      padding: .7rem 1.6rem;
+      border-radius: 6px;
+      font-size: .9rem;
+      font-weight: 700;
+      transition: opacity .15s;
+      cursor: pointer;
+    }
+    .btn-p { background: var(--blue); color: #fff; border: none; }
+    .btn-p:hover { opacity: .88; }
+    .btn-g { background: transparent; color: var(--text); border: 1.5px solid var(--border); }
+    .btn-g:hover { border-color: var(--green); color: var(--green); }
+
+    /* ─── PROJECTS ─── */
+    .proj-list { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .proj-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      transition: border-color .2s;
+    }
+    .proj-card:hover { border-color: rgba(91, 143, 255, .5); }
+
+    .proj-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 1rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .proj-title { font-size: 1.15rem; font-weight: 700; }
+
+    .badge {
+      font-size: .78rem; font-weight: 700;
+      padding: .25rem .8rem;
+      border-radius: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .badge-done { background: rgba(61,186,120,.12); color: var(--green); border: 1px solid rgba(61,186,120,.3); }
+    .badge-wip  { background: rgba(91,143,255,.12); color: var(--blue-l); border: 1px solid rgba(91,143,255,.3); }
+
+    .proj-meta {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .9rem 1.2rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .meta-item { font-size: .88rem; }
+
+    .meta-label {
+      display: block;
+      font-size: .72rem; font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: .18rem;
+    }
+
+    .meta-val { color: var(--text); font-weight: 500; }
+
+    .proj-desc { color: var(--muted); font-size: .95rem; margin-bottom: 1.1rem; line-height: 1.75; }
+
+    .proj-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+
+    .proj-tag {
+      background: rgba(91,143,255,.1);
+      color: var(--blue-l);
+      border: 1px solid rgba(91,143,255,.22);
+      border-radius: 4px;
+      padding: .2rem .65rem;
+      font-size: .8rem;
+      font-weight: 500;
+    }
+
+    /* 자세히 보기 */
+    .detail-btn {
+      margin-top: 1.1rem; width: 100%;
+      padding: .65rem;
+      background: transparent;
+      color: var(--green);
+      border: 1.5px solid rgba(61,186,120,.3);
+      border-radius: 5px;
+      font-size: .88rem; font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .detail-btn:hover { background: rgba(61,186,120,.07); border-color: var(--green); }
+
+    .proj-detail {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .38s cubic-bezier(.4,0,.2,1);
+      margin-top: 1rem;
+    }
+    .proj-detail.open { grid-template-rows: 1fr; }
+    .proj-inner {
+      overflow: hidden;
+      min-height: 0;
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .hidden { display: none !important; }
+
+    .detail-block { margin-bottom: 1.5rem; }
+
+    .detail-heading {
+      font-family: var(--pixel);
+      font-size: 8px;
+      color: var(--green);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .tl-wrap { display: flex; flex-direction: column; gap: .45rem; }
+
+    .tl-step {
+      display: flex; align-items: flex-start; gap: .8rem;
+      padding: .6rem .95rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--border);
+      border-radius: 0 5px 5px 0;
+    }
+    .tl-step.done   { border-left-color: var(--green); }
+    .tl-step.active { border-left-color: var(--blue); background: rgba(91,143,255,.04); }
+
+    .tl-num {
+      font-size: .78rem; font-weight: 700;
+      color: var(--muted); flex-shrink: 0;
+      padding-top: .08rem;
+    }
+    .tl-step.done   .tl-num { color: var(--green); }
+    .tl-step.active .tl-num { color: var(--blue-l); }
+
+    .tl-text { font-size: .9rem; color: var(--muted); line-height: 1.55; }
+    .tl-step.done   .tl-text { color: var(--text); }
+    .tl-step.active .tl-text { color: var(--text); }
+
+    .detail-list { display: flex; flex-direction: column; gap: .45rem; }
+    .detail-list li {
+      font-size: .9rem; color: var(--muted);
+      padding-left: 1.1rem; position: relative;
+      line-height: 1.6;
+    }
+    .detail-list li::before {
+      content: '▸'; position: absolute; left: 0;
+      color: var(--green); font-size: .85em;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: .75rem;
+    }
+    .screenshot-ph {
+      background: var(--surface);
+      border: 1.5px dashed var(--border);
+      border-radius: 5px;
+      padding: 2.5rem 1rem;
+      text-align: center;
+      font-size: .85rem;
+      color: var(--muted);
+      line-height: 2;
+    }
+
+    /* ─── SKILLS ─── */
+    .skill-groups { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    .skill-group {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 1.7rem;
+      transition: border-color .2s;
+    }
+    .skill-group:hover { border-color: rgba(61,186,120,.4); }
+
+    .sg-head {
+      display: flex; align-items: center; gap: .7rem;
+      padding-bottom: .9rem; margin-bottom: 1.1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sg-icon { font-size: 1.1rem; }
+
+    .sg-title {
+      font-family: var(--pixel);
+      font-size: 8px;
+      color: var(--green);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .skill-rows { display: flex; flex-direction: column; gap: 1.1rem; }
+
+    .skill-row {
+      display: grid;
+      grid-template-columns: 76px 1fr 46px;
+      align-items: center; gap: 1rem;
+    }
+
+    .sk-name { font-size: .95rem; font-weight: 700; }
+
+    .sk-mid { display: flex; flex-direction: column; gap: .35rem; }
+
+    /* 픽셀 HP 바 */
+    .sk-bar-wrap {
+      height: 12px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .sk-bar {
+      height: 100%;
+      width: 0;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--green) 0px, var(--green) 8px,
+        rgba(61,186,120,.2) 8px, rgba(61,186,120,.2) 10px
+      );
+      transition: width 1.2s cubic-bezier(.2, 0, .1, 1);
+    }
+    .sk-bar.run { width: var(--w); }
+
+    .sk-desc { font-size: .8rem; color: var(--muted); }
+
+    .sk-pct { font-size: .88rem; font-weight: 700; color: var(--green); text-align: right; }
+
+    /* ─── ABOUT ─── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .about-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: border-color .2s;
+    }
+    .about-card:hover { border-color: rgba(91,143,255,.4); }
+
+    .about-card h3 {
+      font-size: .72rem; font-weight: 700;
+      color: var(--green);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: .65rem;
+    }
+
+    .about-card p { color: var(--muted); font-size: .95rem; line-height: 1.7; }
+    .about-card p strong { color: var(--text); }
+
+    .quote-block {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-left: 3px solid var(--blue);
+      border-radius: 6px;
+      padding: 1.4rem 1.8rem;
+      margin-top: 1.8rem;
+      font-size: .96rem;
+      color: var(--muted);
+      font-style: italic;
+      line-height: 1.8;
+    }
+    .quote-block strong { color: var(--text); font-style: normal; }
+
+    /* ─── VALUES ─── */
+    .val-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .val-item {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 1.3rem;
+      transition: border-color .2s;
+    }
+    .val-item:hover { border-color: rgba(61,186,120,.4); }
+
+    .val-item h3 {
+      font-size: .75rem; font-weight: 700;
+      color: var(--green);
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      margin-bottom: .55rem;
+    }
+    .val-item p { color: var(--muted); font-size: .9rem; line-height: 1.65; }
+
+    /* ─── IDEA LAB ─── */
+    .kw-grid { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.8rem; }
+
+    .kw-chip {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: .5rem 1.05rem;
+      font-size: .9rem; font-weight: 500;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all .15s;
+      user-select: none;
+    }
+    .kw-chip:hover { border-color: var(--blue); color: var(--blue-l); }
+    .kw-chip.active {
+      background: rgba(91,143,255,.12);
+      border-color: var(--blue);
+      color: var(--blue-l);
+    }
+
+    .gen-btn {
+      width: 100%; padding: .9rem;
+      background: var(--blue); color: #fff;
+      border: none; border-radius: 6px;
+      font-size: .95rem; font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+      margin-bottom: 2rem;
+    }
+    .gen-btn:hover:not(:disabled) { opacity: .88; }
+    .gen-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+    .idea-result-header {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--green);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .idea-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: .85rem;
+    }
+
+    .idea-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 1.2rem 1.3rem;
+      display: flex; flex-direction: column; gap: .65rem;
+      transition: border-color .2s;
+      animation: fadeUp .4s ease forwards;
+    }
+    .idea-card:hover { border-color: rgba(91,143,255,.4); }
+
+    .idea-top {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: .6rem;
+    }
+
+    .idea-title-wrap { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+    .idea-num { font-size: .78rem; font-weight: 600; color: var(--muted); flex-shrink: 0; }
+    .idea-title { font-size: .95rem; font-weight: 700; }
+
+    .diff-badge {
+      font-size: .72rem; font-weight: 700;
+      padding: .18rem .6rem;
+      border-radius: 4px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .diff-easy { background: rgba(61,186,120,.1); color: var(--green); border: 1px solid rgba(61,186,120,.28); }
+    .diff-mid  { background: rgba(201,160,64,.1); color: var(--gold); border: 1px solid rgba(201,160,64,.3); }
+
+    .idea-desc {
+      color: var(--muted); font-size: .875rem; line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .idea-tech { display: flex; flex-wrap: wrap; gap: .3rem; }
+
+    .idea-tag {
+      background: rgba(91,143,255,.08);
+      color: var(--blue-l);
+      border: 1px solid rgba(91,143,255,.2);
+      border-radius: 4px;
+      padding: .15rem .55rem;
+      font-size: .78rem; font-weight: 500;
+    }
+
+    .idea-learn-list { display: flex; flex-wrap: wrap; gap: .25rem; }
+
+    .learn-chip {
+      background: rgba(61,186,120,.07);
+      color: #5dd08a;
+      border: 1px solid rgba(61,186,120,.2);
+      border-radius: 4px;
+      padding: .12rem .5rem;
+      font-size: .75rem; font-weight: 500;
+    }
+
+    .match-badge {
+      display: inline-flex; align-items: center; gap: .25rem;
+      font-size: .72rem; font-weight: 600;
+      color: var(--green);
+      background: rgba(61,186,120,.1);
+      border: 1px solid rgba(61,186,120,.25);
+      border-radius: 4px;
+      padding: .1rem .45rem;
+    }
+
+    .idea-empty {
+      text-align: center; color: var(--muted);
+      font-size: .92rem;
+      padding: 2.5rem;
+      background: var(--card);
+      border: 1.5px dashed var(--border);
+      border-radius: 8px;
+      line-height: 1.9;
+      grid-column: 1 / -1;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .88rem;
+      line-height: 2.2;
+    }
+
+    /* ─── COLOR ACCENTS ─── */
+
+    /* 프로젝트 카드 상단 컬러 라인 */
+    .proj-card:nth-child(1) { border-top: 3px solid var(--green); }
+    .proj-card:nth-child(2) { border-top: 3px solid var(--blue); }
+    .proj-card:nth-child(3) { border-top: 3px solid var(--teal); }
+
+    /* 기술 바 variants */
+    .sk-bar.blue {
+      background: repeating-linear-gradient(
+        90deg,
+        var(--blue) 0px, var(--blue) 8px,
+        rgba(59,130,246,.2) 8px, rgba(59,130,246,.2) 10px
+      );
+    }
+    .sk-bar.teal {
+      background: repeating-linear-gradient(
+        90deg,
+        var(--teal) 0px, var(--teal) 8px,
+        rgba(6,182,212,.2) 8px, rgba(6,182,212,.2) 10px
+      );
+    }
+
+    /* 스킬 그룹 왼쪽 컬러 보더 + 타이틀 색상 */
+    .skill-group:nth-child(1) { border-left: 3px solid var(--green); }
+    .skill-group:nth-child(2) { border-left: 3px solid var(--blue); }
+    .skill-group:nth-child(3) { border-left: 3px solid var(--teal); }
+    .skill-group:nth-child(1) .sg-title { color: var(--green); }
+    .skill-group:nth-child(2) .sg-title { color: var(--blue-l); }
+    .skill-group:nth-child(3) .sg-title { color: var(--teal); }
+    .skill-group:nth-child(3) .sk-pct   { color: var(--teal); }
+
+    /* 가치관 카드 상단 컬러 라인 */
+    .val-item:nth-child(1) { border-top: 2.5px solid var(--green); }
+    .val-item:nth-child(2) { border-top: 2.5px solid var(--blue); }
+    .val-item:nth-child(3) { border-top: 2.5px solid var(--teal); }
+    .val-item:nth-child(4) { border-top: 2.5px solid var(--teal); }
+    .val-item:nth-child(5) { border-top: 2.5px solid var(--green); }
+    .val-item:nth-child(6) { border-top: 2.5px solid var(--blue); }
+
+    /* 소개 카드 왼쪽 컬러 보더 */
+    .about-card:nth-child(1) { border-left: 3px solid var(--green); }
+    .about-card:nth-child(2) { border-left: 3px solid var(--blue); }
+    .about-card:nth-child(3) { border-left: 3px solid var(--teal); }
+    .about-card:nth-child(4) { border-left: 3px solid var(--green); }
+    .about-card:nth-child(5) { border-left: 3px solid var(--blue); }
+    .about-card:nth-child(6) { border-left: 3px solid var(--teal); }
+
+    /* 히어로 이름 그라데이션 */
+    .hero-name {
+      background: linear-gradient(125deg, var(--text) 25%, var(--blue-l) 65%, var(--teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-name::after { -webkit-text-fill-color: var(--green); }
+
+    /* ─── ACTIVITIES ─── */
+    .act-group {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-top: 3px solid var(--teal);
+    }
+
+    .act-group-header {
+      padding: 1.4rem 1.8rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(6,182,212,.04);
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .act-group-header:hover { background: rgba(6,182,212,.09); }
+
+    .act-group-top {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: .8rem;
+    }
+
+    .act-toggle {
+      font-family: var(--pixel);
+      font-size: 9px;
+      color: var(--teal);
+      transition: transform .2s;
+    }
+
+    .act-type-badge {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--teal);
+      background: rgba(6,182,212,.1);
+      border: 1.5px solid rgba(6,182,212,.3);
+      padding: .28rem .75rem;
+      letter-spacing: .06em;
+    }
+
+    .act-count {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    .act-group-title {
+      font-family: var(--pixel);
+      font-size: 12px;
+      color: var(--text);
+      line-height: 1.8;
+      margin-bottom: .45rem;
+    }
+
+    .act-group-meta { font-size: .88rem; color: var(--muted); }
+
+    .act-items {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows .42s cubic-bezier(.4,0,.2,1);
+    }
+    .act-items.open { grid-template-rows: 1fr; }
+    .act-inner {
+      overflow: hidden;
+      min-height: 0;
+      display: flex; flex-direction: column;
+      gap: 1.6rem;
+      padding: 1.6rem 1.8rem;
+    }
+
+    .act-item {
+      padding-bottom: 1.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .act-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .act-item-head {
+      display: flex; align-items: flex-start;
+      gap: .75rem; flex-wrap: wrap;
+      margin-bottom: .8rem;
+    }
+
+    .act-num {
+      font-family: var(--pixel);
+      font-size: 7px;
+      color: var(--teal);
+      letter-spacing: .06em;
+      padding-top: .18rem;
+      flex-shrink: 0;
+    }
+
+    .act-item-title {
+      font-family: var(--pixel);
+      font-size: 10px;
+      color: var(--text);
+      line-height: 1.8;
+      flex: 1;
+    }
+
+    .act-status {
+      font-family: var(--pixel);
+      font-size: 7px;
+      padding: .22rem .65rem;
+      flex-shrink: 0;
+      letter-spacing: .03em;
+    }
+    .act-status.done { color: var(--green); background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.28); }
+    .act-status.wip  { color: var(--blue-l); background: rgba(59,130,246,.1); border: 1px solid rgba(59,130,246,.28); }
+
+    .act-item-desc {
+      font-size: .9rem;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: .9rem;
+    }
+
+    .act-tags { display: flex; flex-wrap: wrap; gap: .35rem; }
+
+    .act-tag {
+      font-size: .8rem; font-weight: 500;
+      color: var(--blue-l);
+      background: rgba(59,130,246,.08);
+      border: 1px solid rgba(59,130,246,.2);
+      padding: .18rem .6rem;
+    }
+
+    /* ─── PIXEL / DOT GAME FEEL ─── */
+
+    /* 모든 모서리 직각 */
+    .proj-card, .skill-group, .about-card, .val-item,
+    .idea-card, .proj-meta, .quote-block, .kw-chip,
+    .gen-btn, .detail-btn, .screenshot-ph, .sk-bar-wrap, .tl-step,
+    .badge, .proj-tag, .tag, .hero-badge, .btn,
+    .diff-badge, .learn-chip, .idea-tag, .match-badge { border-radius: 0; }
+
+    /* 카드 테두리 2px */
+    .proj-card, .skill-group, .about-card,
+    .val-item, .idea-card { border-width: 2px; }
+
+    /* 픽셀 구분 바 (점선 블록) */
+    .sec-bar {
+      height: 4px;
+      background: repeating-linear-gradient(
+        90deg, var(--green) 0px, var(--green) 6px,
+        transparent 6px, transparent 10px
+      );
+    }
+
+    /* NAV 상단 HUD 라인 */
+    nav { border-top: 3px solid var(--green); border-bottom: 2px solid var(--border); }
+
+    /* 섹션 라벨 RPG 마커 */
+    .sec-label::before { content: '▶  '; }
+
+    /* 버튼 픽셀 눌림 */
+    .btn-p:hover  { transform: translate(2px, 2px); opacity: 1; }
+    .btn-g:hover  { transform: translate(2px, 2px); border-color: var(--green); color: var(--green); }
+    .detail-btn:hover { transform: translate(1px, 1px); }
+    .gen-btn:not(:disabled):hover { transform: translate(2px, 2px); opacity: 1; }
+
+    /* 프로젝트 카드 내부 픽셀 코너 */
+    .proj-card { position: relative; }
+    .proj-card::before, .proj-card::after {
+      content: ''; position: absolute;
+      width: 12px; height: 12px; pointer-events: none;
+    }
+    .proj-card::before {
+      top: 8px; right: 8px;
+      border-top: 2px solid rgba(255,255,255,.1);
+      border-right: 2px solid rgba(255,255,255,.1);
+    }
+    .proj-card::after {
+      bottom: 8px; left: 8px;
+      border-bottom: 2px solid rgba(255,255,255,.1);
+      border-left: 2px solid rgba(255,255,255,.1);
+    }
+
+    /* 푸터 점선 */
+    footer { border-top: 2px dashed var(--green); }
+
+    /* ══════════════════════════════
+       픽셀 폰트 — 충분한 크기로
+       ══════════════════════════════ */
+
+    /* 섹션 대제목 */
+    .sec-title {
+      font-family: var(--pixel);
+      font-size: 15px;
+      font-weight: 400;
+      line-height: 1.9;
+      letter-spacing: .03em;
+    }
+
+    /* NAV 링크 */
+    .nav-links a {
+      font-family: var(--pixel);
+      font-size: 8px;
+      letter-spacing: .03em;
+    }
+
+    /* 히어로 서브타이틀 */
+    .hero-sub {
+      font-family: var(--pixel);
+      font-size: 8px;
+      line-height: 2.4;
+      letter-spacing: .03em;
+      color: var(--muted);
+    }
+
+    /* 히어로 배지 */
+    .hero-badge {
+      font-family: var(--pixel);
+      font-size: 8px;
+      letter-spacing: .05em;
+      padding: .6rem 1.3rem;
+    }
+
+    /* 프로젝트 카드 제목 */
+    .proj-title {
+      font-family: var(--pixel);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.9;
+      letter-spacing: .02em;
+    }
+
+    /* 완료 / 진행중 뱃지 */
+    .badge {
+      font-family: var(--pixel);
+      font-size: 8px;
+      letter-spacing: .03em;
+      padding: .3rem .9rem;
+    }
+
+    /* 프로젝트 메타 레이블 */
+    .meta-label {
+      font-family: var(--pixel);
+      font-size: 7px;
+      letter-spacing: .04em;
+      margin-bottom: .35rem;
+    }
+
+    /* 소개 / 가치관 카드 헤딩 */
+    .about-card h3, .val-item h3 {
+      font-family: var(--pixel);
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: .04em;
+      margin-bottom: .9rem;
+    }
+
+    /* 스킬 이름 */
+    .sk-name {
+      font-family: var(--pixel);
+      font-size: 9px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    /* 기술 % 숫자 */
+    .sk-pct {
+      font-family: var(--pixel);
+      font-size: 8px;
+      line-height: 1;
+      padding-top: 3px;
+    }
+
+    /* 아이디어 카드 제목 */
+    .idea-title {
+      font-family: var(--pixel);
+      font-size: 9px;
+      font-weight: 400;
+      line-height: 1.9;
+    }
+
+    /* 난이도 뱃지 */
+    .diff-badge {
+      font-family: var(--pixel);
+      font-size: 7px;
+      letter-spacing: .03em;
+    }
+
+    /* 키워드 칩 */
+    .kw-chip {
+      font-family: var(--pixel);
+      font-size: 9px;
+      line-height: 1;
+      padding: .65rem 1rem;
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      .about-grid  { grid-template-columns: 1fr; }
+      .val-grid    { grid-template-columns: 1fr 1fr; }
+      .skill-row   { grid-template-columns: 66px 1fr 40px; gap: .7rem; }
+      .nav-links   { gap: 1.2rem; }
+      .sec-title   { font-size: 1.6rem; }
+      .proj-meta   { gap: .7rem; }
+      .screenshot-grid { grid-template-columns: 1fr; }
+      .idea-grid   { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 420px) {
+      .val-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-brand">최동환 · game.dev</span>
+  <ul class="nav-links">
+    <li><a href="#projects">프로젝트</a></li>
+    <li><a href="#skills">기술 스펙</a></li>
+    <li><a href="#about">소개</a></li>
+    <li><a href="#values">가치관</a></li>
+    <li><a href="#activities">활동</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero-wrap">
+  <section id="hero">
+    <div class="hero-line"></div>
+    <p class="hero-label">// Game Client Developer</p>
+    <h1 class="hero-name">최동환</h1>
+    <p class="hero-sub">게임 콘텐츠학과 2학년 &nbsp;·&nbsp; C# / Unity 중심 개발</p>
+    <div class="hero-badge">지원 포지션 &nbsp;:&nbsp; 게임 클라이언트 개발자 (게임플레이 프로그래머)</div>
+    <div class="hero-tags">
+      <span class="tag">C#</span>
+      <span class="tag">Unity</span>
+      <span class="tag">C++</span>
+      <span class="tag">Python</span>
+      <span class="tag">Git</span>
+      <span class="tag">Figma</span>
+      <span class="tag">Notion</span>
+    </div>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-p">프로젝트 보기 →</a>
+      <a href="소개영상.html" class="btn btn-g">소개 영상 보기 ▶</a>
+    </div>
+  </section>
+</div>
+
+<!-- ① PROJECTS — 취업 우선순위 1위 -->
+<section id="projects">
+  <div class="container">
+    <p class="sec-label reveal">// 01. projects</p>
+    <h2 class="sec-title reveal">프로젝트</h2>
+    <div class="sec-bar reveal"></div>
+
+    <div class="proj-list">
+
+      <div class="proj-card reveal">
+        <div class="proj-top">
+          <h3 class="proj-title">대학 팀 게임 프로젝트</h3>
+          <span class="badge badge-done">완료</span>
+        </div>
+        <div class="proj-meta">
+          <div class="meta-item">
+            <span class="meta-label">팀 구성</span>
+            <span class="meta-val">4인 팀 프로젝트</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">담당 포지션</span>
+            <span class="meta-val">게임플레이 프로그래머</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">기여도</span>
+            <span class="meta-val">게임플레이 시스템 전담</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">개발 환경</span>
+            <span class="meta-val">Unity · C#</span>
+          </div>
+        </div>
+        <p class="proj-desc">
+          플레이어 조작 시스템, 몬스터 공격 패턴, 이동 시스템을 설계·구현했다.
+          갈고리(Hook) 메커닉은 사전 학습 경험이 없었으나 AI 도구와 자문을 활용해
+          자력으로 해결하고 완성했다. 팀원 간 소통이 원활하지 않은 환경에서도 완성까지 이끌었다.
+        </p>
+        <div class="proj-tags">
+          <span class="proj-tag">Unity</span>
+          <span class="proj-tag">C#</span>
+          <span class="proj-tag">플레이어 제어</span>
+          <span class="proj-tag">몬스터 AI</span>
+          <span class="proj-tag">Hook 메커닉</span>
+          <span class="proj-tag">물리 시스템</span>
+        </div>
+        <button class="detail-btn" onclick="toggleDetail(this)">자세히 보기 ▶</button>
+        <div class="proj-detail">
+          <div class="proj-inner">
+          <div class="detail-block">
+            <p class="detail-heading">// 진행 과정</p>
+            <div class="tl-wrap">
+              <div class="tl-step done"><span class="tl-num">01</span><span class="tl-text">팀 구성 및 역할 분배 — 게임플레이 프로그래머 담당 확정</span></div>
+              <div class="tl-step done"><span class="tl-num">02</span><span class="tl-text">플레이어 조작 시스템 설계 및 구현 (이동 · 점프 · 갈고리)</span></div>
+              <div class="tl-step done"><span class="tl-num">03</span><span class="tl-text">몬스터 AI — 순찰 · 추적 · 공격 패턴 FSM 구현</span></div>
+              <div class="tl-step done"><span class="tl-num">04</span><span class="tl-text">Hook 메커닉 독립 연구 → 물리 기반 로프 시스템 완성</span></div>
+              <div class="tl-step done"><span class="tl-num">05</span><span class="tl-text">팀 통합 빌드 · 버그 수정 → 최종 완성</span></div>
+            </div>
+          </div>
+          <div class="detail-block">
+            <p class="detail-heading">// 핵심 구현</p>
+            <ul class="detail-list">
+              <li>Rigidbody 기반 플레이어 이동 · 점프 시스템</li>
+              <li>갈고리(Hook) 물리 로프 메커닉 — LayerMask 충돌 감지</li>
+              <li>FSM 구조 몬스터 AI (Idle / Patrol / Chase / Attack)</li>
+              <li>애니메이터 컨트롤러 및 파라미터 연동</li>
+            </ul>
+          </div>
+          <div class="detail-block">
+            <p class="detail-heading">// 스크린샷</p>
+            <div class="screenshot-grid">
+              <div class="screenshot-ph">[ 게임플레이 스크린샷<br>추가 예정 ]</div>
+              <div class="screenshot-ph">[ Hook 메커닉 시연<br>추가 예정 ]</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-card reveal">
+        <div class="proj-top">
+          <h3 class="proj-title">2인 게임 개발 프로젝트</h3>
+          <span class="badge badge-wip">진행 중</span>
+        </div>
+        <div class="proj-meta">
+          <div class="meta-item">
+            <span class="meta-label">팀 구성</span>
+            <span class="meta-val">2인 개발</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">담당 포지션</span>
+            <span class="meta-val">게임플레이 프로그래머</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">기여도</span>
+            <span class="meta-val">50% · 개발 전담</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">개발 환경</span>
+            <span class="meta-val">Unity · C#</span>
+          </div>
+        </div>
+        <p class="proj-desc">
+          취업 포트폴리오 강화 목적으로 진행 중인 2인 게임 개발 프로젝트.
+          게임플레이 시스템 프로그래밍 전담.
+        </p>
+        <div class="proj-tags">
+          <span class="proj-tag">Unity</span>
+          <span class="proj-tag">C#</span>
+          <span class="proj-tag">In Progress</span>
+          <span class="proj-tag">2인 개발</span>
+        </div>
+        <button class="detail-btn" onclick="toggleDetail(this)">자세히 보기 ▶</button>
+        <div class="proj-detail">
+          <div class="proj-inner">
+          <div class="detail-block">
+            <p class="detail-heading">// 개발 현황</p>
+            <div class="tl-wrap">
+              <div class="tl-step done"><span class="tl-num">01</span><span class="tl-text">게임 장르 및 핵심 메커닉 기획 완료</span></div>
+              <div class="tl-step done"><span class="tl-num">02</span><span class="tl-text">플레이어 기본 컨트롤러 구현 완료</span></div>
+              <div class="tl-step active"><span class="tl-num">03</span><span class="tl-text">핵심 게임플레이 시스템 개발 중</span></div>
+              <div class="tl-step"><span class="tl-num">04</span><span class="tl-text">아트 에셋 통합 및 레벨 디자인</span></div>
+              <div class="tl-step"><span class="tl-num">05</span><span class="tl-text">빌드 최적화 및 배포</span></div>
+            </div>
+          </div>
+          <div class="detail-block">
+            <p class="detail-heading">// 스크린샷</p>
+            <div class="screenshot-grid">
+              <div class="screenshot-ph">[ 진행 중<br>추후 업데이트 예정 ]</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="proj-card reveal">
+        <div class="proj-top">
+          <h3 class="proj-title">4인 팀 게임 프로젝트</h3>
+          <span class="badge badge-wip">진행 중</span>
+        </div>
+        <div class="proj-meta">
+          <div class="meta-item">
+            <span class="meta-label">팀 구성</span>
+            <span class="meta-val">4인 팀 프로젝트</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">담당 포지션</span>
+            <span class="meta-val">게임플레이 프로그래머</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">목적</span>
+            <span class="meta-val">포트폴리오 구축</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">개발 환경</span>
+            <span class="meta-val">Unity · C#</span>
+          </div>
+        </div>
+        <p class="proj-desc">
+          포트폴리오 구성 목적으로 병행 진행 중인 4인 팀 게임 개발 프로젝트.
+        </p>
+        <div class="proj-tags">
+          <span class="proj-tag">In Progress</span>
+          <span class="proj-tag">팀 협업</span>
+          <span class="proj-tag">포트폴리오</span>
+        </div>
+        <button class="detail-btn" onclick="toggleDetail(this)">자세히 보기 ▶</button>
+        <div class="proj-detail">
+          <div class="proj-inner">
+          <div class="detail-block">
+            <p class="detail-heading">// 개발 현황</p>
+            <div class="tl-wrap">
+              <div class="tl-step done"><span class="tl-num">01</span><span class="tl-text">팀 구성 및 포지션 분배 완료</span></div>
+              <div class="tl-step active"><span class="tl-num">02</span><span class="tl-text">게임 설계 및 초기 개발 진행 중</span></div>
+              <div class="tl-step"><span class="tl-num">03</span><span class="tl-text">시스템 통합 및 QA 테스트</span></div>
+              <div class="tl-step"><span class="tl-num">04</span><span class="tl-text">완성 및 포트폴리오 등록</span></div>
+            </div>
+          </div>
+          <div class="detail-block">
+            <p class="detail-heading">// 스크린샷</p>
+            <div class="screenshot-grid">
+              <div class="screenshot-ph">[ 진행 중<br>추후 업데이트 예정 ]</div>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ② 기술 스펙 — 취업 우선순위 2위 -->
+<section id="skills">
+  <div class="container">
+    <p class="sec-label reveal">// 02. skills</p>
+    <h2 class="sec-title reveal">기술 스펙</h2>
+    <div class="sec-bar reveal"></div>
+
+    <div class="skill-groups">
+
+      <div class="skill-group reveal">
+        <div class="sg-head">
+          <span class="sg-icon">🎮</span>
+          <span class="sg-title">Game Engine</span>
+        </div>
+        <div class="skill-rows">
+          <div class="skill-row">
+            <span class="sk-name">Unity</span>
+            <div class="sk-mid">
+              <div class="sk-bar-wrap"><div class="sk-bar" style="--w:65%"></div></div>
+              <span class="sk-desc">3D/2D 씬 구성 · 물리 엔진 · 애니메이션 · 게임오브젝트 라이프사이클 관리</span>
+            </div>
+            <span class="sk-pct">65%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-group reveal">
+        <div class="sg-head">
+          <span class="sg-icon">💻</span>
+          <span class="sg-title">Languages</span>
+        </div>
+        <div class="skill-rows">
+          <div class="skill-row">
+            <span class="sk-name">C#</span>
+            <div class="sk-mid">
+              <div class="sk-bar-wrap"><div class="sk-bar" style="--w:70%"></div></div>
+              <span class="sk-desc">Unity 메인 언어 · OOP · 컴포넌트 패턴 · 코루틴 · 이벤트 시스템</span>
+            </div>
+            <span class="sk-pct">70%</span>
+          </div>
+          <div class="skill-row">
+            <span class="sk-name">C++</span>
+            <div class="sk-mid">
+              <div class="sk-bar-wrap"><div class="sk-bar" style="--w:40%"></div></div>
+              <span class="sk-desc">자료구조 · 알고리즘 · 포인터·메모리 관리 기초 · STL</span>
+            </div>
+            <span class="sk-pct">40%</span>
+          </div>
+          <div class="skill-row">
+            <span class="sk-name">Python</span>
+            <div class="sk-mid">
+              <div class="sk-bar-wrap"><div class="sk-bar" style="--w:42%"></div></div>
+              <span class="sk-desc">스크립팅 · 데이터 처리 · 자동화 · 알고리즘 구현</span>
+            </div>
+            <span class="sk-pct">42%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="skill-group reveal">
+        <div class="sg-head">
+          <span class="sg-icon">🛠</span>
+          <span class="sg-title">Tools & Collaboration</span>
+        </div>
+        <div class="skill-rows">
+          <div class="skill-row">
+            <span class="sk-name">Git</span>
+            <div class="sk-mid">
+              <div class="sk-bar-wrap"><div class="sk-bar teal" style="--w:55%"></div></div>
+              <span class="sk-desc">버전 관리 · 브랜치 전략 · Pull Request · 팀 협업 워크플로우</span>
+            </div>
+            <span class="sk-pct">55%</span>
+          </div>
+          <div class="skill-row">
+            <span class="sk-name">Figma</span>
+            <div class="sk-mid">
+              <div class="sk-bar-wrap"><div class="sk-bar teal" style="--w:35%"></div></div>
+              <span class="sk-desc">게임 UI 레이아웃 설계 · 프로토타이핑 · 에셋 구성 참고</span>
+            </div>
+            <span class="sk-pct">35%</span>
+          </div>
+          <div class="skill-row">
+            <span class="sk-name">Notion</span>
+            <div class="sk-mid">
+              <div class="sk-bar-wrap"><div class="sk-bar teal" style="--w:60%"></div></div>
+              <span class="sk-desc">프로젝트 문서화 · 기술 학습 노트 · 일정 및 태스크 관리</span>
+            </div>
+            <span class="sk-pct">60%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ③ 소개 — 취업 우선순위 3위 -->
+<section id="about">
+  <div class="container">
+    <p class="sec-label reveal">// 03. about</p>
+    <h2 class="sec-title reveal">저를 소개합니다</h2>
+    <div class="sec-bar reveal"></div>
+
+    <div class="about-grid">
+      <div class="about-card reveal">
+        <h3>지원 포지션</h3>
+        <p>
+          <strong>게임 클라이언트 개발자</strong> — 게임플레이 프로그래머<br>
+          Unity · C# 중심의 게임플레이 시스템 구현 포지션 지망
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>현황</h3>
+        <p>
+          <strong>게임 콘텐츠학과 2학년</strong> 재학 중<br>
+          프로젝트와 실전 경험으로 취업 준비 중
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>강점</h3>
+        <p>
+          <strong>자기객관화</strong>가 확실하다<br>
+          내 실력과 위치를 냉정하게 파악하고 부족한 부분을 빠르게 채운다
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>목표</h3>
+        <p>
+          문제를 <strong>직접 해결하는 개발자</strong><br>
+          5년 내 게임 회사에서 프로젝트를 성공시키는 것이 목표
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>성격</h3>
+        <p>
+          계획적 · 냉정 · 자기주도적<br>
+          협업 시 <strong>소통 문제를 만들지 않는 것</strong>이 원칙
+        </p>
+      </div>
+      <div class="about-card reveal">
+        <h3>협업 스타일</h3>
+        <p>
+          상대의 이야기를 먼저 듣고 판단한다<br>
+          각자 역할을 명확히 이해하고 시간을 분배하는 팀을 선호
+        </p>
+      </div>
+    </div>
+
+    <div class="quote-block reveal">
+      "어떤 일이든 꾸준함은 절대 무시할 수 없는 요소입니다.
+      꾸준함을 가진다면 <strong>시간의 쓰임 자체가 달라집니다</strong>"
+    </div>
+  </div>
+</section>
+
+<!-- ④ 가치관 — 취업 우선순위 4위 -->
+<section id="values">
+  <div class="container">
+    <p class="sec-label reveal">// 04. values</p>
+    <h2 class="sec-title reveal">가치관</h2>
+    <div class="sec-bar reveal"></div>
+
+    <div class="val-grid">
+      <div class="val-item reveal">
+        <h3>성실함</h3>
+        <p>꾸준하게 하는 것이 곧 실력이 된다고 믿습니다</p>
+      </div>
+      <div class="val-item reveal">
+        <h3>자기객관화</h3>
+        <p>감정보다 이성적 판단으로 최선의 선택을 추구합니다</p>
+      </div>
+      <div class="val-item reveal">
+        <h3>소통</h3>
+        <p>협업에서 상대의 이야기를 먼저 듣는 것이 소통의 시작입니다</p>
+      </div>
+      <div class="val-item reveal">
+        <h3>균형</h3>
+        <p>일과 삶의 경계가 지켜져야 각각에서 최선을 다할 수 있습니다</p>
+      </div>
+      <div class="val-item reveal">
+        <h3>실패</h3>
+        <p>실패는 피할 수 없는 과정이며 성장의 일부로 받아들입니다</p>
+      </div>
+      <div class="val-item reveal">
+        <h3>계획</h3>
+        <p>계획을 세우고 그 안에서 유연하게 행동합니다</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ 활동 요약 -->
+<section id="activities">
+  <div class="container">
+    <p class="sec-label reveal">// 05. activities</p>
+    <h2 class="sec-title reveal">활동 요약</h2>
+    <div class="sec-bar reveal"></div>
+
+    <div class="act-group reveal">
+
+      <!-- 그룹 헤더 -->
+      <div class="act-group-header" onclick="toggleActGroup(this)">
+        <div class="act-group-top">
+          <span class="act-type-badge">방학 특강</span>
+          <div style="display:flex;align-items:center;gap:.9rem">
+            <span class="act-count">PROJECT × 2</span>
+            <span class="act-toggle">▶</span>
+          </div>
+        </div>
+        <p class="act-group-title">바이브 코딩 방학 특강</p>
+        <p class="act-group-meta">유한대학교 &nbsp;·&nbsp; 2026.06 — 2026.07</p>
+      </div>
+
+      <!-- 프로젝트 목록 -->
+      <div class="act-items">
+        <div class="act-inner">
+
+        <!-- PROJECT 01 -->
+        <div class="act-item">
+          <div class="act-item-head">
+            <span class="act-num">PROJECT 01</span>
+            <span class="act-item-title">포트폴리오 웹페이지 제작</span>
+            <span class="act-status done">완료</span>
+          </div>
+          <p class="act-item-desc">
+            HTML · CSS · Vanilla JS 단일 파일로 게임 클라이언트 개발자 지망 포트폴리오 사이트 제작.
+            픽셀 게임 UI 디자인, 섹션별 컬러 체계, 프로젝트 타임라인 자세히 보기 기능을 직접 구현했다.
+          </p>
+          <div class="act-tags">
+            <span class="act-tag">HTML / CSS / JS</span>
+            <span class="act-tag">픽셀 UI 디자인</span>
+            <span class="act-tag">IntersectionObserver</span>
+            <span class="act-tag">GitHub Pages 배포</span>
+          </div>
+        </div>
+
+        <!-- PROJECT 02 — 아이디어 생성기 -->
+        <div class="act-item">
+          <div class="act-item-head">
+            <span class="act-num">PROJECT 02</span>
+            <span class="act-item-title">방학 스터디 아이디어 생성기</span>
+            <span class="act-status done">완료</span>
+          </div>
+          <p class="act-item-desc">
+            키워드를 선택하면 방학 중 제작 가능한 웹앱 프로젝트 아이디어를 추천하는 인터랙티브 도구.
+            키워드 매칭 알고리즘과 동적 카드 렌더링을 Vanilla JS로 구현했다.
+          </p>
+          <div class="act-tags">
+            <span class="act-tag">Vanilla JS</span>
+            <span class="act-tag">키워드 매칭 알고리즘</span>
+            <span class="act-tag">동적 UI 렌더링</span>
+          </div>
+          <button class="detail-btn" onclick="toggleIdeaLab(this)" style="margin-top:1.1rem">아이디어 생성기 열기 ▶</button>
+          <div class="proj-detail">
+            <div class="proj-inner">
+            <p style="color:var(--muted);font-size:.9rem;margin-bottom:1.4rem;line-height:1.75">
+              관심 있는 키워드를 선택하면 방학 중 직접 만들어볼 수 있는
+              <strong style="color:var(--text)">웹앱 프로젝트 아이디어</strong>를 추천해 드립니다.
+            </p>
+            <p class="idea-learn-label" style="margin-bottom:.75rem">// 관심 키워드 선택 (복수 선택 가능)</p>
+            <div class="kw-grid" id="kwGrid"></div>
+            <button class="gen-btn" id="genBtn" disabled onclick="generateIdeas()">
+              키워드를 선택하면 아이디어가 생성됩니다
+            </button>
+            <div id="ideaResult"></div>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="max-width:860px;margin:0 auto;">
+    <p>최동환 &nbsp;·&nbsp; 게임 클라이언트 개발자 지망 &nbsp;·&nbsp; 게임 콘텐츠학과 2학년</p>
+    <p style="margin-top:.3rem;color:var(--border)">// 프로젝트와 경험으로 준비된 게임 클라이언트 개발자</p>
+  </div>
+</footer>
+
+<script>
+  /* 자세히 보기 토글 */
+  function toggleDetail(btn) {
+    const detail = btn.nextElementSibling;
+    const isOpen = detail.classList.contains('open');
+    detail.classList.toggle('open', !isOpen);
+    btn.textContent = isOpen ? '자세히 보기 ▶' : '접기 ▼';
+  }
+
+  /* 활동 그룹 접기/펼치기 */
+  function toggleActGroup(header) {
+    const items = header.nextElementSibling;
+    const arrow = header.querySelector('.act-toggle');
+    const isOpen = items.classList.contains('open');
+    items.classList.toggle('open', !isOpen);
+    arrow.textContent = isOpen ? '▶' : '▼';
+  }
+
+  /* 아이디어 생성기 열기/닫기 */
+  function toggleIdeaLab(btn) {
+    const panel = btn.nextElementSibling;
+    const isOpen = panel.classList.contains('open');
+    panel.classList.toggle('open', !isOpen);
+    btn.textContent = isOpen ? '아이디어 생성기 열기 ▶' : '아이디어 생성기 닫기 ▼';
+  }
+
+  /* 스크롤 등장 */
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  /* 기술 스펙 바 애니메이션 — 뷰포트 진입 시 */
+  const barIO = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.sk-bar').forEach(bar => bar.classList.add('run'));
+        barIO.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll('.skill-group').forEach(g => barIO.observe(g));
+
+  /* ─── IDEA LAB ─── */
+  const KEYWORDS = ['생산성','소셜','게임','교육','일상편의','데이터','창작','협업','건강','포트폴리오'];
+
+  const IDEAS = [
+    {
+      title: '포모도로 타이머',
+      difficulty: 'easy',
+      desc: '집중 25분 → 휴식 5분을 자동으로 알려주는 뽀모도로 타이머. 원형 진행 바와 알림음을 직접 구현합니다.',
+      tech: ['HTML/CSS/JS', 'setInterval', 'Web Audio API'],
+      learn: ['타이머 로직', '원형 Progress Bar', '브라우저 Notification'],
+      keywords: ['생산성', '일상편의']
+    },
+    {
+      title: '독서 기록 앱',
+      difficulty: 'easy',
+      desc: '읽은 책을 등록하고 별점·한 줄 감상을 저장하는 독서 트래커. 읽은 책 수와 장르 통계를 시각화합니다.',
+      tech: ['Vanilla JS', 'localStorage', 'CSS Grid'],
+      learn: ['CRUD 구현', 'localStorage 활용', '간단한 통계 시각화'],
+      keywords: ['교육', '일상편의', '데이터']
+    },
+    {
+      title: '미니 SNS 피드',
+      difficulty: 'mid',
+      desc: '텍스트와 이미지를 올리고 좋아요를 누를 수 있는 미니 소셜 피드. Firebase를 연동해 실시간 업데이트를 구현합니다.',
+      tech: ['Firebase Firestore', 'Vanilla JS', 'CSS Flexbox'],
+      learn: ['Firebase 연동', '실시간 데이터 동기화', '이미지 업로드 처리'],
+      keywords: ['소셜', '협업']
+    },
+    {
+      title: '2D 미니 게임 (Canvas)',
+      difficulty: 'mid',
+      desc: 'Canvas API로 만드는 슈팅 또는 점프 게임. 키보드 입력 처리, 충돌 감지, 점수 시스템을 직접 구현합니다.',
+      tech: ['HTML Canvas', 'Vanilla JS', 'requestAnimationFrame'],
+      learn: ['게임 루프 구조', '충돌 감지 알고리즘', 'Canvas 렌더링'],
+      keywords: ['게임', '포트폴리오']
+    },
+    {
+      title: '학습 플래너',
+      difficulty: 'easy',
+      desc: '방학 동안 공부할 과목과 목표 시간을 설정하고 매일 달성 여부를 체크하는 학습 관리 앱.',
+      tech: ['Vanilla JS', 'localStorage', 'CSS Animation'],
+      learn: ['날짜 처리 로직', '달성률 계산', '로컬 데이터 저장'],
+      keywords: ['교육', '생산성', '일상편의']
+    },
+    {
+      title: '실시간 채팅 앱',
+      difficulty: 'mid',
+      desc: '닉네임을 설정하고 여러 명이 동시에 참여할 수 있는 실시간 채팅방. Firebase Realtime Database로 메시지를 동기화합니다.',
+      tech: ['Firebase Realtime DB', 'Vanilla JS', 'CSS'],
+      learn: ['WebSocket 개념', '실시간 DB 구조', '유저 세션 관리'],
+      keywords: ['소셜', '협업']
+    },
+    {
+      title: '팀 칸반 보드',
+      difficulty: 'mid',
+      desc: '드래그앤드롭으로 팀원 업무를 나누고 할 일 → 진행 중 → 완료 상태를 실시간 공유하는 미니 칸반보드.',
+      tech: ['JS Drag & Drop API', 'Firebase Realtime DB'],
+      learn: ['드래그앤드롭 API', '실시간 DB 동기화', 'CRUD 구현'],
+      keywords: ['협업', '생산성']
+    },
+    {
+      title: '플래시카드 암기 앱',
+      difficulty: 'easy',
+      desc: '영단어·기술용어를 카드 뒤집기 애니메이션으로 외우는 복습 앱. 자신만의 카드도 추가 가능.',
+      tech: ['Vanilla JS', 'CSS 3D Transform', 'localStorage'],
+      learn: ['CSS 3D 애니메이션', '간격반복 알고리즘', '카드 상태 관리'],
+      keywords: ['교육', '일상편의']
+    },
+    {
+      title: '게임 플레이 기록장',
+      difficulty: 'easy',
+      desc: '플레이한 게임 목록·시간·별점을 기록하고 장르별 통계를 차트로 시각화하는 앱.',
+      tech: ['Vanilla JS', 'Chart.js', 'localStorage'],
+      learn: ['Chart.js 사용법', '데이터 집계 로직', '별점 UI 구현'],
+      keywords: ['게임', '데이터']
+    },
+    {
+      title: '색상 팔레트 생성기',
+      difficulty: 'mid',
+      desc: '이미지를 업로드하면 주요 색상을 자동 추출하고 원클릭으로 HEX 코드를 복사할 수 있는 디자인 툴.',
+      tech: ['Canvas API', 'FileReader API', 'Clipboard API'],
+      learn: ['이미지 픽셀 분석', '색상 군집화 알고리즘', 'Clipboard API'],
+      keywords: ['창작', '포트폴리오']
+    },
+    {
+      title: '환경음 믹서',
+      difficulty: 'mid',
+      desc: '빗소리·카페음·파도소리 등 여러 환경음의 볼륨을 슬라이더로 조절해 나만의 집중 사운드를 만드는 앱.',
+      tech: ['Web Audio API', 'Vanilla JS', 'CSS Slider'],
+      learn: ['AudioContext 사용법', '볼륨 믹싱 원리', '슬라이더 UI 커스텀'],
+      keywords: ['창작', '생산성']
+    },
+    {
+      title: '강의 리뷰 게시판',
+      difficulty: 'mid',
+      desc: '수강한 강의에 후기와 별점을 남기고 공유하는 익명 게시판. 키워드 검색·필터 기능 포함.',
+      tech: ['Firebase Firestore', 'Vanilla JS', 'CSS Grid'],
+      learn: ['NoSQL 데이터 구조', '실시간 쿼리', '별점·댓글 시스템'],
+      keywords: ['소셜', '교육']
+    },
+    {
+      title: '취업 준비 체크리스트',
+      difficulty: 'easy',
+      desc: '이력서·포트폴리오·기술스택·면접 준비 항목을 체크하고 전체 달성률을 프로그레스 바로 보여주는 앱.',
+      tech: ['Vanilla JS', 'localStorage', 'CSS Progress Bar'],
+      learn: ['상태 관리', '달성률 계산', 'localStorage 지속성'],
+      keywords: ['포트폴리오', '생산성']
+    },
+    {
+      title: '건강 습관 트래커',
+      difficulty: 'easy',
+      desc: '매일 운동·수면·물 섭취 등의 건강 습관을 체크하고 주간 달성률을 달력 뷰로 확인하는 앱.',
+      tech: ['Vanilla JS', 'localStorage', 'CSS Calendar'],
+      learn: ['날짜 계산 로직', '습관 데이터 누적', '달력 UI 구현'],
+      keywords: ['건강', '일상편의']
+    },
+    {
+      title: '포트폴리오 공유 게시판',
+      difficulty: 'mid',
+      desc: '학생들이 자신의 프로젝트를 올리고 댓글로 피드백을 주고받는 포트폴리오 공유 커뮤니티.',
+      tech: ['Firebase Firestore', 'Vanilla JS', 'CSS'],
+      learn: ['댓글 시스템 구현', '파일 업로드', '커뮤니티 DB 설계'],
+      keywords: ['소셜', '포트폴리오', '협업']
+    }
+  ];
+
+  const selectedKws = new Set();
+
+  (() => {
+    const grid = document.getElementById('kwGrid');
+    KEYWORDS.forEach(kw => {
+      const chip = document.createElement('button');
+      chip.className = 'kw-chip';
+      chip.textContent = kw;
+      chip.onclick = () => {
+        if (selectedKws.has(kw)) { selectedKws.delete(kw); chip.classList.remove('active'); }
+        else { selectedKws.add(kw); chip.classList.add('active'); }
+        const btn = document.getElementById('genBtn');
+        if (selectedKws.size > 0) {
+          btn.disabled = false;
+          btn.textContent = `아이디어 생성하기 (${selectedKws.size}개 키워드 선택됨) →`;
+        } else {
+          btn.disabled = true;
+          btn.textContent = '키워드를 선택하면 아이디어가 생성됩니다';
+        }
+      };
+      grid.appendChild(chip);
+    });
+  })();
+
+  function generateIdeas() {
+    const kwArr = [...selectedKws];
+    const scored = IDEAS
+      .map(idea => ({ ...idea, score: idea.keywords.filter(k => kwArr.includes(k)).length }))
+      .filter(i => i.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    const container = document.getElementById('ideaResult');
+
+    if (scored.length === 0) {
+      container.innerHTML = '<div class="idea-empty">선택한 키워드와 맞는 아이디어가 없습니다.<br>다른 키워드 조합을 시도해보세요.</div>';
+      return;
+    }
+
+    const diffLabel = { easy: '입문', mid: '중급' };
+    const diffClass = { easy: 'diff-easy', mid: 'diff-mid' };
+
+    container.innerHTML = `
+      <p class="idea-result-header">// 추천 프로젝트 ${scored.length}개</p>
+      <div class="idea-grid">
+        ${scored.map((idea, i) => `
+          <div class="idea-card">
+            <div class="idea-top">
+              <div class="idea-title-wrap">
+                <span class="idea-num">${String(i + 1).padStart(2, '0')}.</span>
+                <span class="idea-title">${idea.title}</span>
+                ${idea.score >= 2 ? `<span class="match-badge">★${idea.score}</span>` : ''}
+              </div>
+              <span class="diff-badge ${diffClass[idea.difficulty]}">${diffLabel[idea.difficulty]}</span>
+            </div>
+            <p class="idea-desc">${idea.desc}</p>
+            <div class="idea-tech">${idea.tech.map(t => `<span class="idea-tag">${t}</span>`).join('')}</div>
+            <div class="idea-learn-list">${idea.learn.map(l => `<span class="learn-chip">${l}</span>`).join('')}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const top = container.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+
+  /* 네비게이션 활성화 */
+  const secs = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let cur = '';
+    secs.forEach(s => {
+      if (s.getBoundingClientRect().top <= 90) cur = s.id;
+    });
+    links.forEach(a => {
+      a.style.color = a.getAttribute('href') === '#' + cur ? 'var(--text)' : '';
+    });
+  });
+</script>
+</body>
+</html>
